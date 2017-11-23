@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -26,6 +24,7 @@ namespace FastWpfGrid
         }
 
         public event Action<object, ColumnClickEventArgs> ColumnHeaderClick;
+        public event Action<object, ColumnClickEventArgs> ColumnHeaderDoubleClick;
         public event Action<object, RowClickEventArgs> RowHeaderClick;
         public List<ActiveRegion> CurrentCellActiveRegions = new List<ActiveRegion>();
         public ActiveRegion CurrentHoverRegion;
@@ -43,6 +42,7 @@ namespace FastWpfGrid
         private int? _mouseOverColumnHeader;
         private FastGridCellAddress _inplaceEditorCell;
         private FastGridCellAddress _shiftDragStartCell;
+        public FastGridCellAddress LastSelectedCell { get; private set; }
         private bool _inlineTextChanged;
         public event EventHandler ScrolledModelRows;
         public event EventHandler ScrolledModelColumns;
@@ -117,7 +117,7 @@ namespace FastWpfGrid
                     }
                 }
 
-                if (!isHeaderClickHandled && ((_resizingColumn == null && cell.IsColumnHeader) || cell.IsRowHeader) 
+                if (!isHeaderClickHandled && ((_resizingColumn == null && cell.IsColumnHeader) || cell.IsRowHeader)
                     && (_lastDblClickResize == null || DateTime.Now - _lastDblClickResize.Value > TimeSpan.FromSeconds(1)))
                 {
                     HideInlineEditor();
@@ -240,6 +240,16 @@ namespace FastWpfGrid
                 SetScrollbarMargin();
                 FixScrollPosition();
                 InvalidateAll();
+
+            }
+
+            var pt = e.GetPosition(image);
+            pt.X *= DpiDetector.DpiXKoef;
+            pt.Y *= DpiDetector.DpiYKoef;
+            var clickedCell = GetCellAddress(pt);
+            if (!IsTransposed && clickedCell.IsColumnHeader)
+            {
+                OnModelColumnHeaderDoubleClick(clickedCell.Column.Value);
             }
         }
 
@@ -343,7 +353,7 @@ namespace FastWpfGrid
             pt.X *= DpiDetector.DpiXKoef;
             pt.Y *= DpiDetector.DpiYKoef;
             var cell = GetCellAddress(pt);
-
+            LastSelectedCell = cell;
             if (!_selectedCells.Contains(cell))
             {
                 using (var ctx = CreateInvalidationContext())
@@ -376,7 +386,23 @@ namespace FastWpfGrid
             }
             return false;
         }
-
+        private bool OnModelColumnHeaderDoubleClick(int column)
+        {
+            if (column >= 0 && column < _modelColumnCount)
+            {
+                var args = new ColumnClickEventArgs
+                {
+                    Grid = this,
+                    Column = column,
+                };
+                if (ColumnHeaderDoubleClick != null)
+                {
+                    ColumnHeaderDoubleClick(this, args);
+                }
+                return args.Handled;
+            }
+            return false;
+        }
         private bool OnModelRowClick(int row)
         {
             if (row >= 0 && row < _modelRowCount)

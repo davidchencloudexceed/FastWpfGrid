@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Media;
 
 namespace FastWpfGrid
@@ -11,6 +6,8 @@ namespace FastWpfGrid
     partial class FastGridControl
     {
         private Color _cellFontColor = Colors.Black;
+        private Color _rowCellBackgroundColor = Colors.Black;
+        private Color _rowCellFontColor = Colors.Yellow;
         private Color _headerBackground = Color.FromRgb(0xF6, 0xF7, 0xF9);
         private Color _headerCurrentBackground = Color.FromRgb(190, 207, 220);
         private Color _selectedColor = Color.FromRgb(51, 153, 255);
@@ -65,7 +62,7 @@ namespace FastWpfGrid
             {
                 _minColumnWidthOverride = value;
                 RecalculateDefaultCellSize();
-                InvalidateAll();                
+                InvalidateAll();
             }
         }
 

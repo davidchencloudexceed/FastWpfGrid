@@ -157,8 +157,8 @@ namespace FastWpfGrid
         {
             var rect = GetCellRect(row, col);
             var cell = GetCell(row, col);
-            Color? selectedBgColor = null;
-            Color? selectedTextColor = null;
+            Color? selectedBgColor = _rowCellBackgroundColor;
+            Color? selectedTextColor = _rowCellFontColor;
             Color? hoverRowColor = null;
             if (_currentCell.TestCell(row, col) || _selectedCells.Contains(new FastGridCellAddress(row, col)))
             {

@@ -1,42 +1,128 @@
-﻿using System;
+﻿using FastWpfGrid;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using FastWpfGrid;
 
 namespace FastWpfGridTest
 {
+    public class RowData
+    {
+        public int Id;
+        public int[] DoubleData = new int[20];
+        public string[] StringData = new string[20];
+        static Random rd = new Random((int)DateTime.Now.Ticks);
+        public RowData(int id)
+        {
+            Id = id;
+
+            for (int i = 0; i < 20; i++)
+            {
+                DoubleData[i] = rd.Next(100000);
+            }
+            for (int i = 0; i < 20; i++)
+            {
+                StringData[i] = "str" + rd.Next(100000);
+            }
+        }
+    }
     public class GridModel1 : FastGridModelBase
     {
         private Dictionary<Tuple<int, int>, string> _editedCells = new Dictionary<Tuple<int, int>, string>();
         private static string[] _columnBasicNames = new[] { "", "Value:", "Long column value:" };
+        private List<RowData> rows = new List<RowData>();
 
+        private void LoadData()
+        {
+            for (int i = 0; i < 2000; i++)
+            {
+                rows.Add(new RowData(i));
+            }
+        }
+        public GridModel1()
+        {
+            LoadData();
+        }
         public override int ColumnCount
         {
-            get { return 100; }
+            get { return 40; }
         }
 
         public override int RowCount
         {
-            get { return 1000; }
+            get { return 2000; }
+        }
+        public override string GetColumnHeaderText(int column)
+        {
+            if (column >= 20)
+            {
+                return $"Str{column - 20}";
+            }
+            else
+            {
+                return $"Num{column}";
+            }
+        }
+        public override string GetRowHeaderText(int row)
+        {
+            return rows[row].Id.ToString();
+        }
+        public class DoubleSort : IComparer<RowData>
+        {
+            bool isAsending;
+            int column;
+            public DoubleSort(bool isAsending, int column)
+            {
+                this.isAsending = isAsending;
+                this.column = column;
+            }
+            public int Compare(RowData x, RowData y)
+            {
+                if (isAsending)
+                {
+                    if (column > 20)
+                    {
+                        return x.StringData[column - 20].CompareTo(y.StringData[column - 20]);
+                    }
+                    else
+                    {
+                        return x.DoubleData[column].CompareTo(y.DoubleData[column]);
+                    }
+                }
+                else
+                {
+                    if (column > 20)
+                    {
+                        return y.StringData[column - 20].CompareTo(x.StringData[column - 20]);
+                    }
+                    else
+                    {
+                        return y.DoubleData[column].CompareTo(x.DoubleData[column]);
+                    }
+
+
+                }
+
+            }
+        }
+        public void Sort(bool isAsending, int column)
+        {
+            rows.Sort(new DoubleSort(isAsending, column));
         }
 
         public override string GetCellText(int row, int column)
         {
-            var key = Tuple.Create(row, column);
-            if (_editedCells.ContainsKey(key)) return _editedCells[key];
+            var rowData = rows[row];
+            if (column >= 20)
+            {
+                return rowData.StringData[column - 20];
+            }
+            else
+            {
+                return rowData.DoubleData[column].ToString();
+            }
 
-
-            return String.Format("{0}{1},{2}", _columnBasicNames[column % _columnBasicNames.Length], row + 1, column + 1);
         }
 
-        public override void SetCellText(int row, int column, string value)
-        {
-            var key = Tuple.Create(row, column);
-            _editedCells[key] = value;
-        }
 
         public override IFastGridCell GetGridHeader(IFastGridView view)
         {
@@ -44,8 +130,8 @@ namespace FastWpfGridTest
             var btn = impl.AddImageBlock(view.IsTransposed ? "/Images/flip_horizontal_small.png" : "/Images/flip_vertical_small.png");
             btn.CommandParameter = FastWpfGrid.FastGridControl.ToggleTransposedCommand;
             btn.ToolTip = "Swap rows and columns";
-            impl.AddImageBlock("/Images/foreign_keysmall.png").CommandParameter = "FK";
-            impl.AddImageBlock("/Images/primary_keysmall.png").CommandParameter = "PK";
+            //impl.AddImageBlock("/Images/foreign_keysmall.png").CommandParameter = "FK";
+            //impl.AddImageBlock("/Images/primary_keysmall.png").CommandParameter = "PK";
             return impl;
         }
 
@@ -64,5 +150,6 @@ namespace FastWpfGridTest
         {
             MessageBox.Show(command);
         }
+        
     }
 }

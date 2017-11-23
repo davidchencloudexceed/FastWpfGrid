@@ -1,19 +1,13 @@
-﻿using System;
+﻿using FastWpfGrid;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace FastWpfGridTest
@@ -27,6 +21,7 @@ namespace FastWpfGridTest
         private GridModel2 _model2;
         private GridModel3 _model3;
         private GridModel4 _model4;
+        private bool isAsending = true;
 
         public MainWindow()
         {
@@ -40,22 +35,29 @@ namespace FastWpfGridTest
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             grid1.ContextMenuOpening += Grid1_ContextMenuOpening;
+            grid1.ColumnHeaderDoubleClick += GridColumnHeadDoubleClick; 
         }
 
+        private void GridColumnHeadDoubleClick(object sender, ColumnClickEventArgs e)
+        {
+            _model1.Sort(isAsending, e.Column);
+            grid1.InvalidateAll();
+            isAsending = !isAsending;
+        }
         private void Grid1_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
-            
+
         }
 
-        private void tabChanged(object sender, SelectionChangedEventArgs e)
+        private void tabChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            if (tab.SelectedIndex == 3) Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, (Action) SetBitmap);
+            if (tab.SelectedIndex == 3) Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, (Action)SetBitmap);
         }
 
         private void SetBitmap()
         {
-            int width = (int) textbox.ActualWidth;
-            int height = (int) textbox.ActualHeight;
+            int width = (int)textbox.ActualWidth;
+            int height = (int)textbox.ActualHeight;
 
             if (width <= 0 || height <= 0) return;
             WriteableBitmap buffer;
@@ -202,6 +204,12 @@ namespace FastWpfGridTest
             {
                 view.ShowSelectionMenu(null);
             }
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var str = $"row:{grid1.LastSelectedCell.Row} col: {grid1.LastSelectedCell.Column} value: {_model1.GetCellText(grid1.LastSelectedCell.Row??0, grid1.LastSelectedCell.Column??0)}";
+            MessageBox.Show(str);
         }
     }
 }

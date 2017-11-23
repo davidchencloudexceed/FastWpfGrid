@@ -26,7 +26,10 @@
                                                  >
                         <FastWpfGrid:FastGridControl.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Test" />
+                                <MenuItem Header="Test1"  Click="MenuItem_Click"/>
+                                <MenuItem Header="Test2" />
+                                <MenuItem Header="Test3" />
+                                <MenuItem Header="Test4" />
                             </ContextMenu>
                         </FastWpfGrid:FastGridControl.ContextMenu>
                     </FastWpfGrid:FastGridControl>
