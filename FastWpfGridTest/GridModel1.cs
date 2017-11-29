@@ -9,7 +9,7 @@ namespace FastWpfGridTest
     {
         public int Id;
         public int[] DoubleData = new int[20];
-        public string[] StringData = new string[20];
+        public string[] StringData = new string[21];
         static Random rd = new Random((int)DateTime.Now.Ticks);
         public RowData(int id)
         {
@@ -23,6 +23,7 @@ namespace FastWpfGridTest
             {
                 StringData[i] = "str" + rd.Next(100000);
             }
+            StringData[20] = DateTime.Now.ToLongDateString()+" "+ DateTime.Now.ToLongTimeString();
         }
     }
     public class GridModel1 : FastGridModelBase
@@ -44,7 +45,7 @@ namespace FastWpfGridTest
         }
         public override int ColumnCount
         {
-            get { return 40; }
+            get { return 41; }
         }
 
         public override int RowCount
@@ -59,7 +60,7 @@ namespace FastWpfGridTest
             }
             else
             {
-                return $"Num{column}";
+                return $"    Num{column}";
             }
         }
         public override string GetRowHeaderText(int row)
@@ -150,6 +151,29 @@ namespace FastWpfGridTest
         {
             MessageBox.Show(command);
         }
-        
+        public void UpdateCell(int row, int column)
+        {
+            if (column >= 20)
+            {
+                rows[row].StringData[column - 20] = "12345";
+            }
+            else
+            {
+                rows[row].DoubleData[column] = 12345;
+            }
+
+        }
+        public override int GetValue(int row, int column)
+        {
+            if (column >= 20)
+            {
+                return 0;
+            }
+            else
+            {
+                return rows[row].DoubleData[column];
+            }
+        }
+
     }
 }

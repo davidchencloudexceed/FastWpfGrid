@@ -1,7 +1,6 @@
 ﻿using FastWpfGrid;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Windows;
@@ -35,7 +34,16 @@ namespace FastWpfGridTest
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             grid1.ContextMenuOpening += Grid1_ContextMenuOpening;
-            grid1.ColumnHeaderDoubleClick += GridColumnHeadDoubleClick; 
+            grid1.ColumnHeaderDoubleClick += GridColumnHeadDoubleClick;
+            grid1.SelectedColor = Colors.Blue;
+            grid1.SelectedTextColor = Colors.White;
+            //grid1.HorizontalAlignment = HorizontalAlignment.Center;
+            grid1.CellPaddingHorizontal = 5;
+            grid1.CellPaddingVertical = 3;
+            //grid1.RowHeaderWidth = 15;
+            grid1.GridLineColor = Colors.Black;
+
+
         }
 
         private void GridColumnHeadDoubleClick(object sender, ColumnClickEventArgs e)
@@ -198,7 +206,7 @@ namespace FastWpfGridTest
             var view = (FastWpfGrid.IFastGridView)grid1;
             if (view.GetSelectedModelCells().Count > 1)
             {
-                view.ShowSelectionMenu(new string[] { "CMD1", "CMD2" });
+                //view.ShowSelectionMenu(new string[] { "CMD1", "CMD2" });
             }
             else
             {
@@ -208,8 +216,11 @@ namespace FastWpfGridTest
 
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
-            var str = $"row:{grid1.LastSelectedCell.Row} col: {grid1.LastSelectedCell.Column} value: {_model1.GetCellText(grid1.LastSelectedCell.Row??0, grid1.LastSelectedCell.Column??0)}";
-            MessageBox.Show(str);
+
+            //var str = $"row:{grid1.LastSelectedCell.Row} col: {grid1.LastSelectedCell.Column} value: {_model1.GetCellText(grid1.LastSelectedCell.Row ?? 0, grid1.LastSelectedCell.Column ?? 0)}";
+            //MessageBox.Show(str);
+            _model1.UpdateCell(grid1.LastSelectedCell.Row ?? 0, grid1.LastSelectedCell.Column ?? 0);
+            grid1.InvalidateCell(grid1.LastSelectedCell.Row ?? 0, grid1.LastSelectedCell.Column ?? 0);
         }
     }
 }

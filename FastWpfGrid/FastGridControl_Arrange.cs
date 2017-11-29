@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
@@ -51,14 +48,14 @@ namespace FastWpfGrid
 
         private int GetColumnLeft(int column)
         {
-            if (column < _columnSizes.FrozenCount) return _columnSizes.GetFrozenPosition(column) + HeaderWidth;
-            return _columnSizes.GetSizeSum(FirstVisibleColumnScrollIndex, column - _columnSizes.FrozenCount) + HeaderWidth + FrozenWidth;
+            if (column < _columnSizes.FrozenCount) return _columnSizes.GetFrozenPosition(column) + RowHeaderWidth;
+            return _columnSizes.GetSizeSum(FirstVisibleColumnScrollIndex, column - _columnSizes.FrozenCount) + RowHeaderWidth + FrozenWidth;
             //return (column - FirstVisibleColumn) * ColumnWidth + HeaderWidth;
         }
 
         private IntRect GetCellRect(int row, int column)
         {
-            return new IntRect(new IntPoint(GetColumnLeft(column), GetRowTop(row)), new IntSize(_columnSizes.GetSizeByRealIndex(column) + 1, _rowSizes.GetSizeByRealIndex(row) + 1));
+            return new IntRect(new IntPoint(GetColumnLeft(column), GetRowTop(row)), new IntSize(_columnSizes.GetSizeByRealIndex(column) + 8, _rowSizes.GetSizeByRealIndex(row) + 1));
         }
 
         private IntRect GetContentRect(IntRect rect)
@@ -68,7 +65,7 @@ namespace FastWpfGrid
 
         private IntRect GetRowHeaderRect(int row)
         {
-            return new IntRect(new IntPoint(0, GetRowTop(row)), new IntSize(HeaderWidth + 1, _rowSizes.GetSizeByRealIndex(row) + 1));
+            return new IntRect(new IntPoint(0, GetRowTop(row)), new IntSize(RowHeaderWidth + 1, _rowSizes.GetSizeByRealIndex(row) + 1));
         }
 
         private IntRect GetColumnHeaderRect(int column)
@@ -78,22 +75,22 @@ namespace FastWpfGrid
 
         private IntRect GetColumnHeadersScrollRect()
         {
-            return new IntRect(new IntPoint(HeaderWidth + FrozenWidth, 0), new IntSize(GridScrollAreaWidth, HeaderHeight + 1));
+            return new IntRect(new IntPoint(RowHeaderWidth + FrozenWidth, 0), new IntSize(GridScrollAreaWidth, HeaderHeight + 1));
         }
 
         private IntRect GetRowHeadersScrollRect()
         {
-            return new IntRect(new IntPoint(0, HeaderHeight + FrozenHeight), new IntSize(HeaderWidth + 1, GridScrollAreaHeight));
+            return new IntRect(new IntPoint(0, HeaderHeight + FrozenHeight), new IntSize(RowHeaderWidth + 1, GridScrollAreaHeight));
         }
 
         private IntRect GetFrozenColumnsRect()
         {
-            return new IntRect(new IntPoint(HeaderWidth, HeaderHeight), new IntSize(_columnSizes.FrozenSize + 1, GridScrollAreaHeight));
+            return new IntRect(new IntPoint(RowHeaderWidth, HeaderHeight), new IntSize(_columnSizes.FrozenSize + 1, GridScrollAreaHeight));
         }
 
         private IntRect GetFrozenRowsRect()
         {
-            return new IntRect(new IntPoint(HeaderWidth, HeaderHeight), new IntSize(GridScrollAreaHeight, _rowSizes.FrozenSize + 1));
+            return new IntRect(new IntPoint(RowHeaderWidth, HeaderHeight), new IntSize(GridScrollAreaHeight, _rowSizes.FrozenSize + 1));
         }
 
         public Rect GetColumnHeaderRectangle(int modelColumnIndex)
@@ -108,14 +105,14 @@ namespace FastWpfGrid
             if (pt.Y > HeaderHeight) return null;
 
             int frozenWidth = FrozenWidth;
-            if ((int) pt.X - HeaderWidth <= frozenWidth + ColumnResizeTheresold)
+            if ((int)pt.X - RowHeaderWidth <= frozenWidth + ColumnResizeTheresold)
             {
-                if ((int) pt.X - HeaderWidth >= frozenWidth - ColumnResizeTheresold && (int) pt.X - HeaderWidth <= FrozenWidth - ColumnResizeTheresold)
+                if ((int)pt.X - RowHeaderWidth >= frozenWidth - ColumnResizeTheresold && (int)pt.X - RowHeaderWidth <= FrozenWidth - ColumnResizeTheresold)
                 {
                     return _columnSizes.FrozenCount - 1;
                 }
-                int index = _columnSizes.GetFrozenIndexOnPosition((int) pt.X - HeaderWidth);
-                int begin = _columnSizes.GetPositionByRealIndex(index) + HeaderWidth;
+                int index = _columnSizes.GetFrozenIndexOnPosition((int)pt.X - RowHeaderWidth);
+                int begin = _columnSizes.GetPositionByRealIndex(index) + RowHeaderWidth;
                 int end = begin + _columnSizes.GetSizeByRealIndex(index);
                 if (pt.X >= begin - ColumnResizeTheresold && pt.X <= begin + ColumnResizeTheresold) return index - 1;
                 if (pt.X >= end - ColumnResizeTheresold && pt.X <= end + ColumnResizeTheresold) return index;
@@ -123,8 +120,8 @@ namespace FastWpfGrid
             else
             {
                 int scrollXStart = _columnSizes.GetPositionByScrollIndex(FirstVisibleColumnScrollIndex);
-                int index = _columnSizes.GetScrollIndexOnPosition((int) pt.X - HeaderWidth - frozenWidth + scrollXStart);
-                int begin = _columnSizes.GetPositionByScrollIndex(index) + HeaderWidth + frozenWidth - scrollXStart;
+                int index = _columnSizes.GetScrollIndexOnPosition((int)pt.X - RowHeaderWidth - frozenWidth + scrollXStart);
+                int begin = _columnSizes.GetPositionByScrollIndex(index) + RowHeaderWidth + frozenWidth - scrollXStart;
                 int end = begin + _columnSizes.GetSizeByScrollIndex(index);
                 if (pt.X >= begin - ColumnResizeTheresold && pt.X <= begin + ColumnResizeTheresold) return index - 1 + _columnSizes.FrozenCount;
                 if (pt.X >= end - ColumnResizeTheresold && pt.X <= end + ColumnResizeTheresold) return index + _columnSizes.FrozenCount;
@@ -136,19 +133,19 @@ namespace FastWpfGrid
         {
             if (position <= headerSize) return null;
             int frozenSize = series.FrozenSize;
-            if (position <= headerSize + frozenSize) return series.GetFrozenIndexOnPosition((int) Math.Round(position - headerSize));
+            if (position <= headerSize + frozenSize) return series.GetFrozenIndexOnPosition((int)Math.Round(position - headerSize));
             return series.GetScrollIndexOnPosition(
-                (int) Math.Round(position - headerSize - frozenSize) + series.GetPositionByScrollIndex(firstVisible)
+                (int)Math.Round(position - headerSize - frozenSize) + series.GetPositionByScrollIndex(firstVisible)
                        ) + series.FrozenCount;
         }
 
         public FastGridCellAddress GetCellAddress(Point pt)
         {
-            if (pt.X <= HeaderWidth && pt.Y < HeaderHeight)
+            if (pt.X <= RowHeaderWidth && pt.Y < HeaderHeight)
             {
                 return FastGridCellAddress.GridHeader;
             }
-            if (pt.X >= GridScrollAreaWidth + HeaderWidth + FrozenWidth)
+            if (pt.X >= GridScrollAreaWidth + RowHeaderWidth + FrozenWidth)
             {
                 return FastGridCellAddress.Empty;
             }
@@ -158,7 +155,7 @@ namespace FastWpfGrid
             }
 
             int? row = GetSeriesIndexOnPosition(pt.Y, HeaderHeight, _rowSizes, FirstVisibleRowScrollIndex);
-            int? col = GetSeriesIndexOnPosition(pt.X, HeaderWidth, _columnSizes, FirstVisibleColumnScrollIndex);
+            int? col = GetSeriesIndexOnPosition(pt.X, RowHeaderWidth, _columnSizes, FirstVisibleColumnScrollIndex);
 
             return new FastGridCellAddress(row, col);
         }
@@ -303,26 +300,34 @@ namespace FastWpfGrid
             }
         }
 
-        public int HeaderWidth
+        public int RowHeaderWidth
         {
-            get { return _headerWidth; }
+            get { return _rowHeaderWidth; }
             set
             {
-                _headerWidth = value;
+                _rowHeaderWidth = value;
                 SetScrollbarMargin();
             }
         }
-
+        public int ColumnHeaderWidth
+        {
+            get { return _columnHeaderWidth; }
+            set
+            {
+                _columnHeaderWidth = value;
+                SetScrollbarMargin();
+            }
+        }
         private void SetScrollbarMargin()
         {
             vscroll.Margin = new Thickness
-                {
-                    Top = HeaderHeight + FrozenHeight,
-                };
+            {
+                Top = HeaderHeight + FrozenHeight,
+            };
             hscroll.Margin = new Thickness
-                {
-                    Left = HeaderWidth + FrozenWidth,
-                };
+            {
+                Left = RowHeaderWidth + FrozenWidth,
+            };
         }
 
         public int FrozenWidth
@@ -337,12 +342,12 @@ namespace FastWpfGrid
 
         private IntRect GetScrollRect()
         {
-            return new IntRect(new IntPoint(HeaderWidth + FrozenWidth, HeaderHeight + FrozenHeight), new IntSize(GridScrollAreaWidth, GridScrollAreaHeight));
+            return new IntRect(new IntPoint(RowHeaderWidth + FrozenWidth, HeaderHeight + FrozenHeight), new IntSize(GridScrollAreaWidth, GridScrollAreaHeight));
         }
 
         private IntRect GetGridHeaderRect()
         {
-            return new IntRect(new IntPoint(0, 0), new IntSize(HeaderWidth + 1, HeaderHeight + 1));
+            return new IntRect(new IntPoint(0, 0), new IntSize(RowHeaderWidth + 1, HeaderHeight + 1));
         }
 
         private FastGridCellAddress RealToModel(FastGridCellAddress address)
@@ -436,7 +441,7 @@ namespace FastWpfGrid
                 int model = _columnSizes.RealToModel(i);
                 res.Frozen.Add(model);
             }
-            foreach(var cell in _selectedCells)
+            foreach (var cell in _selectedCells)
             {
                 if (!cell.Column.HasValue) continue;
                 int model = _columnSizes.RealToModel(cell.Column.Value);
@@ -553,18 +558,18 @@ namespace FastWpfGrid
 
         private void FixScrollPosition()
         {
-            if (FirstVisibleRowScrollIndex >= vscroll.Maximum) FirstVisibleRowScrollIndex = (int) vscroll.Maximum;
-            if (FirstVisibleColumnScrollIndex >= hscroll.Maximum) FirstVisibleColumnScrollIndex = (int) hscroll.Maximum;
+            if (FirstVisibleRowScrollIndex >= vscroll.Maximum) FirstVisibleRowScrollIndex = (int)vscroll.Maximum;
+            if (FirstVisibleColumnScrollIndex >= hscroll.Maximum) FirstVisibleColumnScrollIndex = (int)hscroll.Maximum;
             ClearSelectedCells();
             if (_currentCell.Row.HasValue)
             {
                 if (_currentCell.Row >= _realRowCount)
-                    _currentCell = _currentCell.ChangeRow(_realRowCount > 0 ? _realRowCount - 1 : (int?) null);
+                    _currentCell = _currentCell.ChangeRow(_realRowCount > 0 ? _realRowCount - 1 : (int?)null);
             }
             if (_currentCell.Column.HasValue)
             {
                 if (_currentCell.Column >= _realColumnCount)
-                    _currentCell = _currentCell.ChangeColumn(_realColumnCount > 0 ? _realColumnCount - 1 : (int?) null);
+                    _currentCell = _currentCell.ChangeColumn(_realColumnCount > 0 ? _realColumnCount - 1 : (int?)null);
             }
             if (_currentCell.IsCell) AddSelectedCell(_currentCell);
             AdjustScrollBarPositions();

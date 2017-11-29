@@ -12,7 +12,7 @@ namespace FastWpfGrid
         private Color _headerCurrentBackground = Color.FromRgb(190, 207, 220);
         private Color _selectedColor = Color.FromRgb(51, 153, 255);
         private Color _selectedTextColor = Colors.White;
-        private Color _limitedSelectedColor = Color.FromRgb(51, 220, 220);
+        private Color _limitedSelectedColor = Colors.Blue;//Color.FromRgb(51, 220, 220);
         private Color _limitedSelectedTextColor = Colors.White;
         private Color _mouseOverRowColor = Color.FromRgb(235, 235, 255); // Colors.LemonChiffon; // Colors .Beige;
         private string _cellFontName = "Arial";

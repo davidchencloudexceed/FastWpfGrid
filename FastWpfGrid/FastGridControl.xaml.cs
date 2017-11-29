@@ -1,21 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace FastWpfGrid
@@ -31,7 +22,8 @@ namespace FastWpfGrid
         private FastGridCellAddress _currentCell;
 
         private int _headerHeight;
-        private int _headerWidth;
+        private int _rowHeaderWidth;
+        private int _columnHeaderWidth;
         private Dictionary<Tuple<bool, bool>, GlyphFont> _glyphFonts = new Dictionary<Tuple<bool, bool>, GlyphFont>();
         private Dictionary<Color, Brush> _solidBrushes = new Dictionary<Color, Brush>();
         private int _rowHeightReserve = 5;
@@ -102,8 +94,8 @@ namespace FastWpfGrid
         private void RecalculateDefaultCellSize()
         {
             ClearCaches();
-            int rowHeight = GetFont(false, false).TextHeight + CellPaddingVertical*2 + 2 + RowHeightReserve;
-            int columnWidth = MinColumnWidthOverride ?? rowHeight*4;
+            int rowHeight = GetFont(false, false).TextHeight + CellPaddingVertical * 2 + 2 + RowHeightReserve;
+            int columnWidth = MinColumnWidthOverride ?? rowHeight * 4;
 
             _rowSizes.DefaultSize = rowHeight;
             _columnSizes.DefaultSize = columnWidth;
@@ -115,14 +107,14 @@ namespace FastWpfGrid
 
         private void RecalculateHeaderSize()
         {
-            HeaderWidth = GetTextWidth("0000000", false, false);
+            RowHeaderWidth = GetTextWidth("0000000", false, false);
             HeaderHeight = _rowSizes.DefaultSize;
 
             if (IsTransposed) CountTransposedHeaderWidth();
             if (Model != null)
             {
                 int width = GetCellContentWidth(Model.GetGridHeader(this));
-                if (width + 2 * CellPaddingHorizontal > HeaderWidth) HeaderWidth = width + 2 * CellPaddingHorizontal;
+                if (width + 2 * CellPaddingHorizontal > RowHeaderWidth) RowHeaderWidth = width + 2 * CellPaddingHorizontal;
             }
         }
 
@@ -132,10 +124,10 @@ namespace FastWpfGrid
             for (int col = 0; col < _modelColumnCount; col++)
             {
                 var cell = Model.GetColumnHeader(this, col);
-                int width = GetCellContentWidth(cell) + 2*CellPaddingHorizontal;
+                int width = GetCellContentWidth(cell) + 2 * CellPaddingHorizontal;
                 if (width > maxw) maxw = width;
             }
-            HeaderWidth = maxw;
+            RowHeaderWidth = maxw;
         }
 
         //public int RowHeight
@@ -153,8 +145,8 @@ namespace FastWpfGrid
             //int rowIndex = _rowSizes.GetScrollIndexOnPosition((int) vscroll.Value);
             //int columnIndex = _columnSizes.GetScrollIndexOnPosition((int) hscroll.Value);
 
-            int rowIndex = (int) Math.Round(vscroll.Value);
-            int columnIndex = (int) Math.Round(hscroll.Value);
+            int rowIndex = (int)Math.Round(vscroll.Value);
+            int columnIndex = (int)Math.Round(hscroll.Value);
 
             //FirstVisibleRow = rowIndex;
             //FirstVisibleColumn = columnIndex;
@@ -167,7 +159,7 @@ namespace FastWpfGrid
 
         public Color GetAlternateBackground(int row)
         {
-            return _alternatingColors[row%_alternatingColors.Length];
+            return _alternatingColors[row % _alternatingColors.Length];
         }
 
         private void hscroll_Scroll(object sender, ScrollEventArgs e)
@@ -194,7 +186,7 @@ namespace FastWpfGrid
             get
             {
                 if (_drawBuffer == null) return 1;
-                return _drawBuffer.PixelWidth - HeaderWidth - FrozenWidth;
+                return _drawBuffer.PixelWidth - RowHeaderWidth - FrozenWidth;
             }
         }
 
@@ -237,7 +229,7 @@ namespace FastWpfGrid
             }
             else
             {
-                vscroll.Maximum = _rowSizes.ScrollCount - (GridScrollAreaHeight/(_rowSizes.DefaultSize + 1)) + 1;
+                vscroll.Maximum = _rowSizes.ScrollCount - (GridScrollAreaHeight / (_rowSizes.DefaultSize + 1)) + 1;
             }
             vscroll.ViewportSize = VisibleRowCount; // GridScrollAreaHeight;
             vscroll.SmallChange = 1; // _rowSizes.DefaultSize;
@@ -411,7 +403,7 @@ namespace FastWpfGrid
                 edText.Focus();
                 if (textValueOverride == null)
                 {
-                    Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Input, (Action) edText.SelectAll);
+                    Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Input, (Action)edText.SelectAll);
                 }
             }
 
@@ -433,12 +425,12 @@ namespace FastWpfGrid
                 var rect = GetCellRect(_inplaceEditorCell.Row.Value, _inplaceEditorCell.Column.Value);
 
                 edText.Margin = new Thickness
-                    {
-                        Left = rect.Left / DpiDetector.DpiXKoef,
-                        Top = rect.Top / DpiDetector.DpiYKoef,
-                        Right = imageGrid.ActualWidth - rect.Right / DpiDetector.DpiXKoef,
-                        Bottom = imageGrid.ActualHeight - rect.Bottom / DpiDetector.DpiYKoef,
-                    };
+                {
+                    Left = rect.Left / DpiDetector.DpiXKoef,
+                    Top = rect.Top / DpiDetector.DpiYKoef,
+                    Right = imageGrid.ActualWidth - rect.Right / DpiDetector.DpiXKoef,
+                    Bottom = imageGrid.ActualHeight - rect.Bottom / DpiDetector.DpiYKoef,
+                };
             }
         }
 
@@ -446,7 +438,7 @@ namespace FastWpfGrid
         {
             FastGridCellAddress maxaddr = FastGridCellAddress.Empty;
 
-            foreach(var addr in _selectedCells)
+            foreach (var addr in _selectedCells)
             {
                 if (!addr.IsCell) continue;
                 if (!maxaddr.IsCell) maxaddr = addr;
@@ -589,32 +581,32 @@ namespace FastWpfGrid
         private void imageGridResized(object sender, SizeChangedEventArgs e)
         {
             bool wasEmpty = _drawBuffer == null;
-            int width = (int) imageGrid.ActualWidth - 2;
-            int height = (int) imageGrid.ActualHeight - 2;
+            int width = (int)imageGrid.ActualWidth - 2;
+            int height = (int)imageGrid.ActualHeight - 2;
             if (width > 0 && height > 0)
             {
-				//To avoid flicker (blank image) while resizing, crop the current buffer and set it as the image source instead of using a new one.
-				//This will be shown during the refresh.
-				int pixelWidth = (int) Math.Ceiling(width*DpiDetector.DpiXKoef);
-	            int pixelHeight = (int) Math.Ceiling(height*DpiDetector.DpiYKoef);
-	            if (_drawBuffer == null)
-	            {
-		            _drawBuffer = BitmapFactory.New(pixelWidth, pixelHeight);
-	            }
-	            else
-	            {
-		            var oldBuffer = _drawBuffer;
-		            _drawBuffer = oldBuffer.Crop(0, 0, pixelWidth, pixelHeight);
-					
-					//The unmanaged memory when crating new WritableBitmaps doesn't reliably garbage collect and can still cause out of memory exceptions
-					//Profiling revealed handles on the object that aren't able to be collected.
-					//Freezing the object removes all handles and should help in garbage collection.
-					oldBuffer.Freeze();
-	            }
+                //To avoid flicker (blank image) while resizing, crop the current buffer and set it as the image source instead of using a new one.
+                //This will be shown during the refresh.
+                int pixelWidth = (int)Math.Ceiling(width * DpiDetector.DpiXKoef);
+                int pixelHeight = (int)Math.Ceiling(height * DpiDetector.DpiYKoef);
+                if (_drawBuffer == null)
+                {
+                    _drawBuffer = BitmapFactory.New(pixelWidth, pixelHeight);
+                }
+                else
+                {
+                    var oldBuffer = _drawBuffer;
+                    _drawBuffer = oldBuffer.Crop(0, 0, pixelWidth, pixelHeight);
+
+                    //The unmanaged memory when crating new WritableBitmaps doesn't reliably garbage collect and can still cause out of memory exceptions
+                    //Profiling revealed handles on the object that aren't able to be collected.
+                    //Freezing the object removes all handles and should help in garbage collection.
+                    oldBuffer.Freeze();
+                }
             }
             else
             {
-				_drawBuffer = null;
+                _drawBuffer = null;
             }
             image.Source = _drawBuffer;
             image.Margin = new Thickness(0);

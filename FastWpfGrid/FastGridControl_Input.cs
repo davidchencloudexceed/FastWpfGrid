@@ -603,7 +603,7 @@ namespace FastWpfGrid
                 _mouseCursorPoint = pt;
                 var cell = GetCellAddress(pt);
                 _mouseMoveRow = GetSeriesIndexOnPosition(pt.Y, HeaderHeight, _rowSizes, FirstVisibleRowScrollIndex);
-                _mouseMoveColumn = GetSeriesIndexOnPosition(pt.X, HeaderWidth, _columnSizes, FirstVisibleColumnScrollIndex);
+                _mouseMoveColumn = GetSeriesIndexOnPosition(pt.X, RowHeaderWidth, _columnSizes, FirstVisibleColumnScrollIndex);
 
                 if (_resizingColumn.HasValue)
                 {

@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -133,7 +128,7 @@ namespace FastWpfGrid
             Color? hoverColor = null;
             if (col == _mouseOverColumnHeader) hoverColor = MouseOverRowColor;
 
-            RenderCell(cell, rect, null, hoverColor ?? selectedBgColor ?? cellBackground ?? HeaderBackground, new FastGridCellAddress(null, col));
+            RenderCell(cell, rect, null, hoverColor ?? selectedBgColor ?? cellBackground ?? HeaderBackground, new FastGridCellAddress(0, col));
         }
 
         private void RenderRowHeader(int row)
@@ -155,10 +150,24 @@ namespace FastWpfGrid
 
         private void RenderCell(int row, int col)
         {
+
             var rect = GetCellRect(row, col);
             var cell = GetCell(row, col);
+            var cellAdress = new FastGridCellAddress(row, col);
             Color? selectedBgColor = _rowCellBackgroundColor;
             Color? selectedTextColor = _rowCellFontColor;
+            if (cellAdress.IsCell && _model.GetValue(row, col) > 0)
+            {
+                if (_model.GetValue(row, col) > 50000)
+                {
+                    selectedTextColor = Colors.Red;
+                }
+                else
+                {
+                    selectedTextColor = Colors.Green;
+                }
+            }
+
             Color? hoverRowColor = null;
             if (_currentCell.TestCell(row, col) || _selectedCells.Contains(new FastGridCellAddress(row, col)))
             {
@@ -240,10 +249,10 @@ namespace FastWpfGrid
                     int textHeight = font.GetTextHeight(block.TextData);
                     width = font.GetTextWidth(block.TextData, _columnSizes.MaxSize);
                     height = textHeight;
-                    top = rectContent.Top + (int) Math.Round(rectContent.Height/2.0 - textHeight/2.0);
+                    top = rectContent.Top + (int)Math.Round(rectContent.Height / 2.0 - textHeight / 2.0);
                     break;
                 case FastGridBlockType.Image:
-                    top = rectContent.Top + (int) Math.Round(rectContent.Height/2.0 - block.ImageHeight/2.0);
+                    top = rectContent.Top + (int)Math.Round(rectContent.Height / 2.0 - block.ImageHeight / 2.0);
                     height = block.ImageHeight;
                     width = block.ImageWidth;
                     break;
@@ -253,11 +262,11 @@ namespace FastWpfGrid
             {
                 var activeRect = new IntRect(new IntPoint(leftAlign ? leftPos : rightPos - width, top), new IntSize(width, height)).GrowSymmetrical(1, 1);
                 var region = new ActiveRegion
-                    {
-                        CommandParameter = block.CommandParameter,
-                        Rect = activeRect,
-                        Tooltip = block.ToolTip,
-                    };
+                {
+                    CommandParameter = block.CommandParameter,
+                    Rect = activeRect,
+                    Tooltip = block.ToolTip,
+                };
                 CurrentCellActiveRegions.Add(region);
                 if (_mouseCursorPoint.HasValue && activeRect.Contains(_mouseCursorPoint.Value))
                 {
@@ -278,7 +287,7 @@ namespace FastWpfGrid
                     {
                         var textOrigin = new IntPoint(leftAlign ? leftPos : rightPos - width, top);
                         var font = GetFont(block.IsBold, block.IsItalic);
-                        _drawBuffer.DrawString(textOrigin.X, textOrigin.Y, rectContent, selectedTextColor ?? block.FontColor ?? CellFontColor, UseClearType ? bgColor : (Color?) null,
+                        _drawBuffer.DrawString(textOrigin.X, textOrigin.Y, rectContent, selectedTextColor ?? block.FontColor ?? CellFontColor, UseClearType ? bgColor : (Color?)null,
                                                font,
                                                block.TextData);
                     }
@@ -324,7 +333,7 @@ namespace FastWpfGrid
                 var block = cell.GetBlock(i);
                 if (block == null) continue;
                 if (i < count - 1) rightPos -= BlockPadding;
-                int blockWi = RenderBlock(leftPos, rightPos, selectedTextColor, bgColor, rectContent, block, cellAddr, false, isHoverCell);
+                int blockWi = RenderBlock(leftPos, rightPos, selectedTextColor, bgColor, rectContent, block, cellAddr, true, isHoverCell);
                 rightPos -= blockWi;
             }
 
@@ -339,7 +348,7 @@ namespace FastWpfGrid
             switch (cell.Decoration)
             {
                 case CellDecoration.StrikeOutHorizontal:
-                    _drawBuffer.DrawLine(rect.Left, rect.Top + rect.Height/2, rect.Right, rect.Top + rect.Height/2, cell.DecorationColor ?? Colors.Black);
+                    _drawBuffer.DrawLine(rect.Left, rect.Top + rect.Height / 2, rect.Right, rect.Top + rect.Height / 2, cell.DecorationColor ?? Colors.Black);
                     break;
             }
             if (isHoverCell)
